@@ -1,11 +1,9 @@
 from src.data_loader import load_all_documents
-from src.embedding import EmbeddingPipeline
+from src.vector_store import FaissVectorStore
 
 if __name__ == "__main__":
-    embedding = EmbeddingPipeline()
-
-    docs = load_all_documents("data")
-    chunks = embedding.chunk_documents(docs)
-    vectors = embedding.embed_chunks(chunks)
-
-    print(vectors)
+    #docs = load_all_documents("data")
+    store = FaissVectorStore("faiss_store")
+    #store.build_from_documents(docs)
+    store.load()
+    print(store.query("What is GAN-based Deblurring?"))
