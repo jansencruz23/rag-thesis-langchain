@@ -14,7 +14,10 @@ app = FastAPI(
 )
 
 # Initialize RAGSearch instance
-rag_search = RAGSearch()
+rag_search = RAGSearch(
+    embedding_model="nomic-embed-text",
+    llm_model="gemma3:4b",
+)
 
 # Define request/response models
 class QueryRequest(BaseModel):

@@ -4,18 +4,18 @@ import faiss
 import numpy as np
 import pickle
 from typing import List, Any
-from sentence_transformers import SentenceTransformer
 from src.embedding import EmbeddingPipeline
+from langchain_ollama import OllamaEmbeddings
 
 class FaissVectorStore:
-    def __init__(self, persist_dir: str = "faiss_store", embedding_model: str="all-MiniLM-L6-v2", 
+    def __init__(self, persist_dir: str = "faiss_store", embedding_model: str="nomic-embed-text", 
                  chunk_size: int=1000, chunk_overlap: int=200):
         self.persist_dir = persist_dir
         os.makedirs(self.persist_dir, exist_ok=True)
         self.index = None
         self.metadata = []
         self.embedding_model = embedding_model
-        self.model = SentenceTransformer(embedding_model)
+        self.model = OllamaEmbeddings(model=embedding_model)
         self.chunk_size = chunk_size
         self.chunk_overlap = chunk_overlap
 
@@ -23,7 +23,11 @@ class FaissVectorStore:
         emb_pipe = EmbeddingPipeline(model_name=self.embedding_model, 
                                      chunk_size=self.chunk_size, chunk_overlap=self.chunk_overlap)
         chunks = emb_pipe.chunk_documents(documents)
-        embeddings = emb_pipe.embed_chunks(chunks)
+
+        texts = [chunk.page_content for chunk in chunks]
+        print(f"[INFO] Generating embeddings for {len(texts)} chunks using Ollama.")
+        embeddings = self.model.embed_documents(texts)
+        print(f"[INFO] Generated embeddings with shape: {np.array(embeddings).shape}")
         
         metadatas = []
         for i, chunk in enumerate(chunks):
@@ -104,5 +108,5 @@ class FaissVectorStore:
         Returns:
             The list of filtered search results.
         """
-        query_emb = self.model.encode([query_text]).astype("float32")
+        query_emb = np.array([self.model.embed_query(query_text)]).astype("float32")
         return self.search(query_emb, top_k=top_k, score_threshold=score_threshold)

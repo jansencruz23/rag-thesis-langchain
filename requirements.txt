@@ -1,12 +1,12 @@
 langchain
 langchain-core
 langchain-community
+langchain-ollama
 pypdf
 pymupdf
 sentence-transformers
 faiss-cpu
 chromadb
-langchain-groq
 python-dotenv
 fastapi
 uvicorn[standard]

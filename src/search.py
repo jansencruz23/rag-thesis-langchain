@@ -3,14 +3,14 @@ import time
 from typing import Any, Dict, Generator, List
 from dotenv import load_dotenv
 from src.vector_store import FaissVectorStore
-from langchain_groq import ChatGroq
+from langchain_ollama import ChatOllama
 from src.data_loader import load_all_documents
 
 load_dotenv()
 
 class RAGSearch:
-    def __init__(self, persist_dir: str="faiss_store", embedding_model: str="all-MiniLM-L6-v2", 
-                 llm_model: str="llama-3.1-8b-instant", chunk_size: int=1000, chunk_overlap: int=200):
+    def __init__(self, persist_dir: str="faiss_store", embedding_model: str="nomic-embed-text", 
+                 llm_model: str="gemma3:4b", chunk_size: int=1000, chunk_overlap: int=200):
         self.vector_store = FaissVectorStore(
             persist_dir=persist_dir, 
             embedding_model=embedding_model,
@@ -32,7 +32,13 @@ class RAGSearch:
         else:
             self.vector_store.load()
 
-        self.llm = ChatGroq(model=llm_model, temperature=0.1, max_tokens=5000)
+        self.llm = ChatOllama(
+            model=llm_model,
+            temperature=0.1, 
+            max_tokens=5000, 
+            num_gpu=1, 
+            num_thread=4
+        )
 
     def search_and_summarize(self, query: str, top_k: int=5) -> str:
         results = self.vector_store.query(query, top_k=top_k)
@@ -47,7 +53,6 @@ class RAGSearch:
     def answer(self, query: str, top_k: int=5, score_threshold: float=0.2, 
                stream: bool=False, summarize: bool=False) -> Dict[str, Any]:
         results = self.vector_store.query(query, top_k=top_k, score_threshold=score_threshold)
-
         if not results:
             answer = "No relevant documents found."
             sources = []
