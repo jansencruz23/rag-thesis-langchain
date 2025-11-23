@@ -1,5 +1,6 @@
 from fastapi import FastAPI, HTTPException, Query, Body
 from fastapi.responses import StreamingResponse
+from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, Field
 from typing import List, Dict, Any, Optional
 import uvicorn
@@ -11,6 +12,14 @@ app = FastAPI(
     title="Thesis RAG API",
     description="API for querying thesis documents using RAG (Retrieval-Augmented Generation)",
     version="1.0.0"
+)
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"], 
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
 )
 
 # Initialize RAGSearch instance

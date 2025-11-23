@@ -24,6 +24,7 @@ lipad-venv/
 lipadvenv3.9/
 .lipad-venv/
 .venv
+rag-venv/
 env/
 venv/
 ENV/
