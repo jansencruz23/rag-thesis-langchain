@@ -1,0 +1,54 @@
+/started
+/logs
+/aug_data
+
+# Jupyter Notebook checkpoints
+.ipynb_checkpoints/
+
+# Virtual environment
+cifar10-cnn/
+
+data/
+
+cifar10.tgz
+
+# IDE-specific files
+.vscode/
+.idea/
+.virtual_documents/
+
+# Anaconda-specific files
+anaconda_projects/
+
+# Python cache and compiled files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Environment files
+.env
+lipad-venv/
+lipadvenv3.9/
+.lipad-venv/
+.venv
+env/
+venv/
+ENV/
+env.bak/
+venv.bak/
+.venv/
+
+# Jupyter Notebook outputs
+*.ipynb_checkpoints
+
+# System files
+.DS_Store
+Thumbs.db
+
+# Log files
+*.log
+
+*.pt
+
+# IPython history
+.ipython/
