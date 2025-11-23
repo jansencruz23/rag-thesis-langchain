@@ -21,22 +21,34 @@ class FaissVectorStore:
 
     def build_from_documents(self, documents: List[Any]):
         emb_pipe = EmbeddingPipeline(model_name=self.embedding_model, 
-        chunk_size=self.chunk_size, chunk_overlap=self.chunk_overlap)
+                                     chunk_size=self.chunk_size, chunk_overlap=self.chunk_overlap)
         chunks = emb_pipe.chunk_documents(documents)
         embeddings = emb_pipe.embed_chunks(chunks)
-        metadatas = [{"text": chunk.page_content} for chunk in chunks]
+        
+        metadatas = []
+        for i, chunk in enumerate(chunks):
+            metadata = {
+                "text": chunk.page_content,
+                "source": chunk.metadata.get("source", "unknown"),
+                "page": chunk.metadata.get("page", "unknown"),
+                "chunk_id": i
+            }
+            metadatas.append(metadata)
+
         self.add_embeddings(np.array(embeddings).astype("float32"), metadatas)
         self.save()
-        #print(f"[INFO] Vector store built and saved to {self.persist_dir}")
 
     def add_embeddings(self, embeddings: np.ndarray, metadatas: List[Any] = None):
         dim = embeddings.shape[1]
         if self.index is None:
-            self.index = faiss.IndexFlatL2(dim)
+            self.index = faiss.IndexFlatIP(dim)
+            
+        # Normalize embeddings for better cosine similarity
+        faiss.normalize_L2(embeddings)
         self.index.add(embeddings)
+
         if metadatas:
             self.metadata.extend(metadatas)
-        #print(f"[INFO] Added {embeddings.shape[0]} embeddings to the index.")
 
     def save(self):
         faiss_path = os.path.join(self.persist_dir, "faiss_index")
@@ -44,7 +56,6 @@ class FaissVectorStore:
         faiss.write_index(self.index, faiss_path)
         with open(meta_path, "wb") as f:
             pickle.dump(self.metadata, f)
-        #print(f"[INFO] Saved FAISS index to {faiss_path} and metadata to {meta_path}.")
 
     def load(self):
         faiss_path = os.path.join(self.persist_dir, "faiss_index")
@@ -52,7 +63,6 @@ class FaissVectorStore:
         self.index = faiss.read_index(faiss_path)
         with open(meta_path, "rb") as f:
             self.metadata = pickle.load(f)
-        #print(f"[INFO] Loaded FAISS index from {faiss_path} and metadata from {meta_path}.")
 
     def search(self, query_embedding: np.ndarray, top_k: int=5, score_threshold: float=0.2):
         """
@@ -65,6 +75,8 @@ class FaissVectorStore:
         Returns:
             A list of dictionaries, each containing 'index', 'distance', and 'metadata'.
         """
+        # Normalize query embedding for consistent similarity calculation
+        faiss.normalize_L2(query_embedding)
         D, I = self.index.search(query_embedding, top_k)
 
         filtered_results = []
@@ -74,11 +86,15 @@ class FaissVectorStore:
 
             if dist >= score_threshold:
                 meta = self.metadata[idx] if idx < len(self.metadata) else None
-                filtered_results.append({'index': idx, 'distance': dist, 'metadata': meta})
+                filtered_results.append({
+                    'index': idx, 
+                    'similarity_score': float(dist), 
+                    'metadata': meta
+                })
 
         return filtered_results
     
-    def query(self, query_text: str, top_k: int = 5, score_threshold: float=0.2):
+    def query(self, query_text: str, top_k: int=5, score_threshold: float=0.2):
         """
         Encodes a text query and searches the vector store.
         Args:
@@ -88,6 +104,5 @@ class FaissVectorStore:
         Returns:
             The list of filtered search results.
         """
-        #print(f"[INFO] Querying vector store for: '{query_text}' with score_threshold={score_threshold}")
         query_emb = self.model.encode([query_text]).astype("float32")
         return self.search(query_emb, top_k=top_k, score_threshold=score_threshold)

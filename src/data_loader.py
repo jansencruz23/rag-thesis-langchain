@@ -23,6 +23,12 @@ def load_all_documents(data_dir: str) -> List[Any]:
         try:
             loader = PyPDFLoader(str(pdf_file))
             loaded = loader.load()
+
+            for doc in loaded:
+                doc.metadata['source'] = str(pdf_file.name)
+                doc.metadata['file_type'] = 'pdf'
+                doc.metadata['authors'] = ["Jansen Cruz", "Jamaica Salem", "Aljunalei Alfonso", "Wrenz Ivan Laylo"]
+ 
             print(f'[DEBUG] Loaded {len(loaded)} documents from {pdf_file}')
             documents.extend(loaded)
         except Exception as e:
