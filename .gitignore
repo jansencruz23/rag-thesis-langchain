@@ -5,13 +5,6 @@
 # Jupyter Notebook checkpoints
 .ipynb_checkpoints/
 
-# Virtual environment
-cifar10-cnn/
-
-data/
-
-cifar10.tgz
-
 # IDE-specific files
 .vscode/
 .idea/

@@ -179,7 +179,7 @@ class RAGSearch:
             'chunks': chunks,
             'sources': sources,
             'summary': summary,
-            'history': self.history[-5:]
+            'history': self.history[-3:]
         }
 
     def rebuild_vector_store(self, chunk_size: int = None, chunk_overlap: int = None):

@@ -1,0 +1,13 @@
+Machine learning is a subfield of artificial intelligence (AI) that uses algorithms to enable computers to learn from data and improve over time without being explicitly programmed. Instead of following hard-coded instructions, systems use algorithms to find patterns in data, make predictions, and perform tasks like classifying information or suggesting products based on past behavior. 
+
+How it works
+- Training: A model is "trained" on a large dataset that is similar to the real-world problem it needs to solve. For example, a model can be trained on thousands of pictures labeled "cat" or "truck".
+- Learning patterns: The algorithm learns to recognize the key features or patterns that distinguish between different categories, such as the features that make up a cat versus a truck.
+- Generalization: Once trained, the model can then apply what it learned to new, unseen data to make accurate predictions or decisions. For instance, it can identify a cat in a photo it has never seen before. 
+
+Key applications
+ -Personalized recommendations: Suggesting products on an e-commerce site or movies on a streaming platform based on user history.
+- Fraud detection: Identifying unusual activity in financial transactions that could indicate fraud.
+- Image and speech recognition: Enabling features like facial recognition on a phone or voice assistants to understand commands.
+- Healthcare: Analyzing patient data to help with diagnostics or personalizing treatments.
+- Autonomous vehicles: Using data from cameras and sensors to help a car learn to navigate, steer, and brake safely. 
