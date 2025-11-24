@@ -64,16 +64,22 @@ async def query_documents(request: QueryRequest):
                 summarize=request.summarize
             )
 
-            if hasattr(result, '__iter__') and not isinstance(result, dict):
-                async def generate():
+            if not isinstance(result, dict):
+                def generate():
                     for chunk in result:
+                        print(f"{json.dumps(chunk)}", sep="")
                         yield f"data: {json.dumps(chunk)}\n\n"
 
-                return StreamingResponse(
+                response = StreamingResponse(
                     generate(),
                     media_type="text/event-stream",
-                    headers={"Cache-Control": "no-cache", "Connection": "keep-alive"}
+                    headers={
+                        "Cache-Control": "no-cache, no-transform", 
+                        "Connection": "keep-alive", 
+                        "X-Accel-Buffering": "no",
+                        "Content-Encoding": "identity"}
                 )
+                return response
             else:
                 return result
         else:
