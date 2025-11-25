@@ -1,4 +1,4 @@
-from fastapi import FastAPI, HTTPException, Query, Body
+from fastapi import FastAPI, HTTPException, Query, Body, File, UploadFile, Form
 from fastapi.responses import StreamingResponse
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, Field
@@ -52,25 +52,40 @@ async def root():
     return {"message": "Thesis RAG API is running"}
 
 @app.post("/query")
-async def query_documents(request: QueryRequest):
-    """Query the thesis documents"""
+async def query_documents(
+    query: str = Form(..., description="The query to search for"),
+    top_k: int = Form(5, ge=1, le=20),
+    score_threshold: float = Form(0.2, ge=0.0, le=1.0),
+    stream: bool = Form(True),
+    summarize: bool = Form(False),
+    file: Optional[UploadFile] = File(None, description="Optional image upload")
+):
+    """Query the thesis documents with optional image"""
     try:
-        if request.stream:
+        # 1. Handle Image Logic (Placeholder for your vision model)
+        if file:
+            print(f"Received file: {file.filename} ({file.content_type})")
+            # TODO: Pass 'file' to rag_search.answer() if your RAG supports vision
+            # content = await file.read() 
+        
+        # 2. Call RAG Search (Pass parameters individually)
+        if stream:
             result = rag_search.answer(
-                query=request.query,
-                top_k=request.top_k,
-                score_threshold=request.score_threshold,
-                stream=request.stream,
-                summarize=request.summarize
+                query=query,
+                top_k=top_k,
+                score_threshold=score_threshold,
+                stream=stream,
+                summarize=summarize
+                # image=file (Add this if your RAG class supports it)
             )
 
             if not isinstance(result, dict):
                 def generate():
                     for chunk in result:
-                        print(f"{json.dumps(chunk)}", sep="")
+                        # print(f"{json.dumps(chunk)}", sep="") # Optional logging
                         yield f"data: {json.dumps(chunk)}\n\n"
 
-                response = StreamingResponse(
+                return StreamingResponse(
                     generate(),
                     media_type="text/event-stream",
                     headers={
@@ -79,19 +94,19 @@ async def query_documents(request: QueryRequest):
                         "X-Accel-Buffering": "no",
                         "Content-Encoding": "identity"}
                 )
-                return response
             else:
                 return result
         else:
             # Non-streaming response
             result = rag_search.answer(
-                query=request.query,
-                top_k=request.top_k,
-                score_threshold=request.score_threshold,
-                stream=request.stream,
-                summarize=request.summarize
+                query=query,
+                top_k=top_k,
+                score_threshold=score_threshold,
+                stream=stream,
+                summarize=summarize
             )
             return result
+            
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error processing query: {str(e)}")
     
